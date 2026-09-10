@@ -1,0 +1,157 @@
+@import 'tailwindcss';
+
+@variant dark (&:where(.dark, .dark *));
+@variant pink (&:where(.pink, .pink *));
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* ==========================================================================
+   SOFT PINK THEME (Sakura / Rose Pastel Aesthetic)
+   ========================================================================== */
+html.pink body {
+    background-color: #fff1f2 !important;
+    color: #4c0519;
+}
+
+html.pink .bg-slate-50 {
+    background-color: #fff1f2 !important;
+}
+
+html.pink .bg-white {
+    background-color: #ffffff !important;
+}
+
+html.pink .bg-slate-100 {
+    background-color: #ffe4e6 !important;
+}
+
+html.pink .hover\:bg-slate-100:hover {
+    background-color: #ffe4e6 !important;
+}
+
+html.pink .bg-slate-200 {
+    background-color: #fecdd3 !important;
+}
+
+html.pink .hover\:bg-slate-200:hover {
+    background-color: #fecdd3 !important;
+}
+
+html.pink .border-slate-200,
+html.pink .border-slate-100 {
+    border-color: #fecdd3 !important;
+}
+
+html.pink .border-slate-300 {
+    border-color: #fda4af !important;
+}
+
+html.pink .text-slate-900 {
+    color: #4c0519 !important;
+}
+
+html.pink .text-slate-800 {
+    color: #701a35 !important;
+}
+
+html.pink .text-slate-700 {
+    color: #881337 !important;
+}
+
+html.pink .text-slate-600 {
+    color: #9f1239 !important;
+}
+
+html.pink .text-slate-500 {
+    color: #be123c !important;
+}
+
+html.pink .text-slate-400 {
+    color: #e11d48 !important;
+}
+
+html.pink .shadow-sm {
+    box-shadow: 0 1px 3px 0 rgba(244, 63, 94, 0.08), 0 1px 2px -1px rgba(244, 63, 94, 0.08) !important;
+}
+
+html.pink .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(244, 63, 94, 0.1), 0 2px 4px -2px rgba(244, 63, 94, 0.08) !important;
+}
+
+html.pink .shadow-lg,
+html.pink .shadow-xl,
+html.pink .shadow-2xl {
+    box-shadow: 0 10px 25px -5px rgba(244, 63, 94, 0.12), 0 8px 10px -6px rgba(244, 63, 94, 0.08) !important;
+}
+
+html.pink .bg-red-600 {
+    background-color: #e11d48 !important;
+}
+
+html.pink .hover\:bg-red-500:hover {
+    background-color: #be123c !important;
+}
+
+html.pink .bg-red-500\/10 {
+    background-color: rgba(244, 63, 94, 0.12) !important;
+}
+
+html.pink .text-red-600 {
+    color: #e11d48 !important;
+}
+
+html.pink .border-red-500\/25,
+html.pink .border-red-500\/20 {
+    border-color: rgba(244, 63, 94, 0.35) !important;
+}
+
+html.pink aside {
+    background-color: rgba(255, 255, 255, 0.96) !important;
+    border-right-color: #fecdd3 !important;
+}
+
+html.pink header {
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    border-bottom-color: #fecdd3 !important;
+}
+
+/* Custom subtle scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(51, 65, 85, 0.8);
+    border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 1);
+}
+
+html.pink .custom-scrollbar::-webkit-scrollbar-track {
+    background: #ffe4e6;
+}
+
+html.pink .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #fda4af;
+}
+
+html.pink .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #fb7185;
+}
