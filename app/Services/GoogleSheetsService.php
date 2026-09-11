@@ -61,12 +61,26 @@ class GoogleSheetsService
         $privateKey = config('google.private_key');
         $projectId = config('google.project_id');
 
+        // Check if service account JSON file is provided
+        $jsonPath = config('google.service_account_json');
+        if (!empty($jsonPath)) {
+            $resolvedPath = file_exists($jsonPath) ? $jsonPath : base_path($jsonPath);
+            if (file_exists($resolvedPath)) {
+                $credentials = json_decode(file_get_contents($resolvedPath), true);
+                if (is_array($credentials)) {
+                    $clientEmail = $credentials['client_email'] ?? $clientEmail;
+                    $privateKey = $credentials['private_key'] ?? $privateKey;
+                    $projectId = $credentials['project_id'] ?? $projectId;
+                }
+            }
+        }
+
         if (empty($clientEmail) || empty($privateKey)) {
             throw new RuntimeException('Google Cloud Service Account credentials are not configured.');
         }
 
-        // Normalize private key (replace escaped literal \n with real newlines)
-        $formattedPrivateKey = str_replace(['\n', '\r'], ["\n", ''], $privateKey);
+        // Normalize private key robustly
+        $formattedPrivateKey = self::normalizePrivateKey($privateKey);
 
         $guzzleOptions = [];
         if (app()->environment('local', 'testing')) {
@@ -91,6 +105,34 @@ class GoogleSheetsService
         $client->setAuthConfig($authConfig);
 
         return new GoogleSheets($client);
+    }
+
+    /**
+     * Robustly normalize private key from .env or JSON.
+     * Handles escaped newlines (\n), double-escaped (\\n), trailing slashes,
+     * accidental outer quotes, and formats clean 64-char PEM blocks for OpenSSL.
+     */
+    public static function normalizePrivateKey(string $key): string
+    {
+        $key = trim($key);
+        $key = trim($key, '"\'');
+
+        // Check if user accidentally pasted only the first line into .env
+        if (str_contains($key, 'BEGIN') && !str_contains($key, 'END')) {
+            throw new RuntimeException('GOOGLE_PRIVATE_KEY di .env tidak lengkap (hanya terbaca header baris pertama). Pastikan seluruh private key diapit tanda petik dua ("...") dalam satu baris, atau gunakan file JSON via GOOGLE_SERVICE_ACCOUNT_JSON.');
+        }
+
+        // Extract base64 payload if standard PEM delimiters exist
+        if (preg_match('/-----BEGIN (?:RSA )?PRIVATE KEY-----(.*?)-----END (?:RSA )?PRIVATE KEY-----/s', $key, $matches)) {
+            $body = str_replace(['\\n', '\n', '\\', ' ', "\t", "\r", "\n"], '', $matches[1]);
+            return "-----BEGIN PRIVATE KEY-----\n" . chunk_split($body, 64, "\n") . "-----END PRIVATE KEY-----\n";
+        }
+
+        // Fallback normalization
+        $key = str_replace(['\\n', '\n'], "\n", $key);
+        $key = str_replace("\r", '', $key);
+
+        return $key;
     }
 
     /**

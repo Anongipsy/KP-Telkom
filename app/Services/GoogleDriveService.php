@@ -59,12 +59,26 @@ class GoogleDriveService
         $privateKey = config('google.private_key');
         $projectId = config('google.project_id');
 
+        // Check if service account JSON file is provided
+        $jsonPath = config('google.service_account_json');
+        if (!empty($jsonPath)) {
+            $resolvedPath = file_exists($jsonPath) ? $jsonPath : base_path($jsonPath);
+            if (file_exists($resolvedPath)) {
+                $credentials = json_decode(file_get_contents($resolvedPath), true);
+                if (is_array($credentials)) {
+                    $clientEmail = $credentials['client_email'] ?? $clientEmail;
+                    $privateKey = $credentials['private_key'] ?? $privateKey;
+                    $projectId = $credentials['project_id'] ?? $projectId;
+                }
+            }
+        }
+
         if (empty($clientEmail) || empty($privateKey)) {
             throw new RuntimeException('Google Cloud Service Account credentials are not configured.');
         }
 
-        // Normalize private key (replace escaped literal \n with real newlines)
-        $formattedPrivateKey = str_replace(['\n', '\r'], ["\n", ''], $privateKey);
+        // Normalize private key robustly
+        $formattedPrivateKey = GoogleSheetsService::normalizePrivateKey($privateKey);
 
         $guzzleOptions = [];
         if (app()->environment('local', 'testing')) {
