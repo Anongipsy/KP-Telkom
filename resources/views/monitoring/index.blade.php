@@ -158,36 +158,54 @@
                     href="{{ route('monitoring.index') }}?tab=notifications&status=all"
                     class="px-3 py-1.5 rounded-xl text-xs font-semibold {{ ($filterStatus ?? 'all') === 'all' ? 'bg-red-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}"
                 >
-                    Semua Notifikasi
+                    Semua Notifikasi ({{ $totalNotificationCount ?? 0 }})
                 </a>
                 <a
                     href="{{ route('monitoring.index') }}?tab=notifications&status=unread"
                     class="px-3 py-1.5 rounded-xl text-xs font-semibold {{ ($filterStatus ?? '') === 'unread' ? 'bg-red-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}"
                 >
-                    Belum Dibaca ({{ $unreadCount }})
+                    Belum Dibaca ({{ $unreadCount ?? 0 }})
                 </a>
                 <a
                     href="{{ route('monitoring.index') }}?tab=notifications&status=read"
                     class="px-3 py-1.5 rounded-xl text-xs font-semibold {{ ($filterStatus ?? '') === 'read' ? 'bg-red-600 text-white font-bold' : 'bg-slate-100 dark:bg-slate-950 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800' }}"
                 >
-                    Sudah Dibaca
+                    Sudah Dibaca ({{ $readCount ?? 0 }})
                 </a>
             </div>
 
-            @if($unreadCount > 0)
-                <form action="{{ route('notifications.read-all') }}" method="POST">
-                    @csrf
-                    <button
-                        type="submit"
-                        class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
-                    >
-                        <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        <span>Tandai Semua Sudah Dibaca</span>
-                    </button>
-                </form>
-            @endif
+            <div class="flex items-center gap-2">
+                @if($unreadCount > 0)
+                    <form action="{{ route('notifications.read-all') }}" method="POST">
+                        @csrf
+                        <button
+                            type="submit"
+                            class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <svg class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Tandai Semua Sudah Dibaca</span>
+                        </button>
+                    </form>
+                @endif
+
+                @if($notifications->count() > 0)
+                    <form action="{{ route('notifications.clear-all') }}" method="POST" onsubmit="return confirm('Hapus semua notifikasi?')">
+                        @csrf
+                        @method('DELETE')
+                        <button
+                            type="submit"
+                            class="px-3.5 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <svg class="w-3.5 h-3.5 text-rose-500 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            <span>Hapus Semua</span>
+                        </button>
+                    </form>
+                @endif
+            </div>
         </div>
 
         <!-- Notifications List -->
@@ -245,14 +263,31 @@
                         >
                             Buka Kontrak &rarr;
                         </a>
+
+                        <form action="{{ route('notifications.destroy', $notif->id) }}" method="POST" onsubmit="return confirm('Hapus notifikasi ini?')">
+                            @csrf
+                            @method('DELETE')
+                            <button
+                                type="submit"
+                                class="p-1.5 rounded-xl bg-slate-100 hover:bg-rose-500/10 dark:bg-slate-800 dark:hover:bg-rose-500/20 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                                title="Hapus Notifikasi"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </button>
+                        </form>
                     </div>
                 </div>
             @empty
                 <div class="p-12 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 text-center text-slate-500 space-y-2">
-                    <svg class="w-10 h-10 mx-auto text-slate-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                    </svg>
-                    <p class="text-xs font-semibold text-slate-600 dark:text-slate-400">Tidak ada notifikasi yang sesuai filter.</p>
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center mx-auto mb-3">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <p class="text-sm font-bold text-slate-800 dark:text-slate-200">Tidak ada notifikasi aktif</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">Semua kontrak terpantau aman dan tidak ada batas masa berlaku yang mendesak.</p>
                 </div>
             @endforelse
 

@@ -49,6 +49,8 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::post('/{notification}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('read');
         Route::post('/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('read-all');
+        Route::delete('/clear-all', [\App\Http\Controllers\NotificationController::class, 'clearAll'])->name('clear-all');
+        Route::delete('/{notification}', [\App\Http\Controllers\NotificationController::class, 'destroy'])->name('destroy');
     });
 
     // Admin & Developer Protected Routes — PRD FR-02 & Section 4.2

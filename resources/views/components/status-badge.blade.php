@@ -56,10 +56,10 @@
         }
     } elseif ($type === 'contract_status' || $type === 'status_kontrak') {
         if ($val === 'SELESAI' || $val === 'KONTRAK SELESAI') {
-            $classes = 'bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
+            $classes = 'bg-rose-500/10 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30';
             $label = 'Kontrak Selesai';
         } else {
-            $classes = 'bg-blue-500/10 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/30';
+            $classes = 'bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
             $label = 'Kontrak Berjalan';
         }
     }

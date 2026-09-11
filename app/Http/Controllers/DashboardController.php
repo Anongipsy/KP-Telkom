@@ -98,10 +98,14 @@ class DashboardController extends Controller
             ->unread()
             ->count();
 
-        // Categorize contracts for Expiration Summary section (using filtered contracts)
-        $activeContracts = array_values(array_filter($contracts, fn($c) => ($c['expiration_status'] ?? '') === 'ACTIVE'));
-        $expiringSoonContracts = array_values(array_filter($contracts, fn($c) => ($c['expiration_status'] ?? '') === 'EXPIRING_SOON'));
-        $overdueContracts = array_values(array_filter($contracts, fn($c) => ($c['expiration_status'] ?? '') === 'OVERDUE'));
+        // Categorize contracts for Expiration Summary section (using filtered contracts, excluding completed contracts)
+        $isNotCompleted = fn($c) => !($c['is_completed'] ?? false)
+            && strtoupper((string) ($c['status_kontrak'] ?? 'BERJALAN')) !== 'SELESAI'
+            && !str_contains(strtoupper((string) ($c['status_kontrak'] ?? '')), 'SELESAI');
+
+        $activeContracts = array_values(array_filter($contracts, fn($c) => ($c['expiration_status'] ?? '') === 'ACTIVE' && $isNotCompleted($c)));
+        $expiringSoonContracts = array_values(array_filter($contracts, fn($c) => ($c['expiration_status'] ?? '') === 'EXPIRING_SOON' && $isNotCompleted($c)));
+        $overdueContracts = array_values(array_filter($contracts, fn($c) => ($c['expiration_status'] ?? '') === 'OVERDUE' && $isNotCompleted($c)));
 
         // Prepare data for Stage Pipeline Donut Chart
         $stageChartData = [

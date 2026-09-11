@@ -3,7 +3,7 @@
         <tr>
             <th class="px-4 py-3.5">LOP & Kontrak</th>
             <th class="px-4 py-3.5">Satker / Nama GC</th>
-            <th class="px-4 py-3.5">Layanan</th>
+            <th class="px-4 py-3.5 max-w-[140px] w-36">Layanan</th>
             <th class="px-4 py-3.5">Batas Masa Berlaku</th>
             <th class="px-4 py-3.5">Sisa Waktu</th>
             <th class="px-4 py-3.5">Nilai Kontrak</th>
@@ -33,8 +33,10 @@
                         <span class="text-[10px] text-slate-400 block">-</span>
                     @endif
                 </td>
-                <td class="px-4 py-3.5 text-slate-700 dark:text-slate-300">
-                    {{ $item['service'] }}
+                <td class="px-4 py-3.5 max-w-[140px]">
+                    <span class="text-slate-700 dark:text-slate-300 block truncate max-w-[140px] cursor-default" title="{{ $item['service'] ?? '-' }}">
+                        {{ $item['service'] ?? '-' }}
+                    </span>
                 </td>
                 <td class="px-4 py-3.5 font-mono text-slate-700 dark:text-slate-300">
                     {{ $item['end_date'] ?: '-' }}

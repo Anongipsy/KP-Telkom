@@ -48,6 +48,14 @@ class Notification extends Model
     }
 
     /**
+     * Scope: read notifications only.
+     */
+    public function scopeRead($query)
+    {
+        return $query->where('is_read', true);
+    }
+
+    /**
      * Scope: filter by alert type.
      */
     public function scopeOfType($query, string $alertType)

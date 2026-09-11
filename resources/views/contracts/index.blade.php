@@ -274,8 +274,8 @@
                     <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">Status Kontrak</label>
                     <select name="status_kontrak" class="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-xs text-slate-900 dark:text-white focus:ring-2 focus:ring-red-500">
                         <option value="">Semua Status</option>
-                        <option value="BERJALAN" {{ ($filters['status_kontrak'] ?? '') === 'BERJALAN' ? 'selected' : '' }}>🔵 Kontrak Berjalan</option>
-                        <option value="SELESAI" {{ ($filters['status_kontrak'] ?? '') === 'SELESAI' ? 'selected' : '' }}>🟢 Kontrak Selesai</option>
+                        <option value="BERJALAN" {{ ($filters['status_kontrak'] ?? '') === 'BERJALAN' ? 'selected' : '' }}>🟢 Kontrak Berjalan</option>
+                        <option value="SELESAI" {{ ($filters['status_kontrak'] ?? '') === 'SELESAI' ? 'selected' : '' }}>🔴 Kontrak Selesai</option>
                     </select>
                 </div>
 
@@ -305,8 +305,8 @@
                         <tr>
                             <th class="px-4 py-3.5">LOP & Identitas</th>
                             <th class="px-4 py-3.5">Satker / Nama GC</th>
-                            <th class="px-4 py-3.5">Layanan</th>
-                            <th class="px-4 py-3.5">Tahapan & Status</th>
+                            <th class="px-4 py-3.5 max-w-[140px] w-36">Layanan</th>
+                            <th class="px-4 py-3.5">Tahapan</th>
                             <th class="px-4 py-3.5">Nilai Realisasi Win</th>
                             <th class="px-4 py-3.5">Masa Berlaku</th>
                             <th class="px-4 py-3.5">SP/PO</th>
@@ -371,21 +371,18 @@
                                 </td>
 
                                 <!-- Layanan -->
-                                <td class="px-4 py-3.5">
-                                    <span class="text-slate-700 dark:text-slate-300">{{ $contract['service'] ?: '-' }}</span>
+                                <td class="px-4 py-3.5 max-w-[140px]">
+                                    <span class="text-slate-700 dark:text-slate-300 block truncate max-w-[140px] cursor-default" title="{{ $contract['service'] ?: '-' }}">
+                                        {{ $contract['service'] ?: '-' }}
+                                    </span>
                                 </td>
 
-                                <!-- Tahapan Pipeline & Status Kontrak -->
+                                <!-- Tahapan Pipeline -->
                                 <td class="px-4 py-3.5 whitespace-nowrap">
                                     <div class="flex flex-col gap-1 items-start">
                                         <span class="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold font-mono border whitespace-nowrap {{ $stageColor }}">
                                             {{ $contract['stage'] }} &bull; {{ $contract['stage_label'] ?? '' }}
                                         </span>
-                                        @if(($contract['status_kontrak'] ?? 'BERJALAN') === 'SELESAI')
-                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
-                                                <span>Selesai</span>
-                                            </span>
-                                        @endif
                                     </div>
                                 </td>
 
@@ -401,9 +398,15 @@
 
                                 <!-- Masa Berlaku & Status Kedaluwarsa -->
                                 <td class="px-4 py-3.5">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono border {{ $expBadge }}">
-                                        {{ $contract['days_remaining'] ?? 0 }} hari
-                                    </span>
+                                    @if(($contract['status_kontrak'] ?? 'BERJALAN') === 'SELESAI')
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 whitespace-nowrap">
+                                            Kontrak Selesai
+                                        </span>
+                                    @else
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-mono border {{ $expBadge }}">
+                                            {{ $contract['days_remaining'] ?? 0 }} hari
+                                        </span>
+                                    @endif
                                     <p class="text-[10px] text-slate-500 mt-1 font-mono">s/d {{ $contract['end_date'] ?: '-' }}</p>
                                 </td>
 
@@ -566,13 +569,14 @@
                                     </div>
                                     <div class="flex items-center gap-1">
                                         @if(($card['status_kontrak'] ?? 'BERJALAN') === 'SELESAI')
-                                            <span class="px-1.5 py-0.2 rounded text-[8px] font-semibold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20">
                                                 Selesai
                                             </span>
+                                        @else
+                                            <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border {{ $cardBadge }}">
+                                                {{ $card['days_remaining'] ?? 0 }}h
+                                            </span>
                                         @endif
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold border {{ $cardBadge }}">
-                                            {{ $card['days_remaining'] ?? 0 }}h
-                                        </span>
                                     </div>
                                 </div>
 

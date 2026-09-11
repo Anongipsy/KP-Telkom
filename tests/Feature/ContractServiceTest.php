@@ -236,6 +236,8 @@ class ContractServiceTest extends TestCase
         $this->assertEquals(100000000, $kpi['total_realized_revenue']);
 
         $this->assertEquals(3, $kpi['total_lop']);
+        $this->assertEquals(3, $kpi['kontrak_berjalan_count']);
+        $this->assertEquals(0, $kpi['kontrak_selesai_count']);
         $this->assertEquals(1, $kpi['active_contracts']);
         $this->assertEquals(1, $kpi['expiring_soon_contracts']);
         $this->assertEquals(1, $kpi['overdue_contracts']);
@@ -245,6 +247,33 @@ class ContractServiceTest extends TestCase
         $this->assertEquals(1, $kpi['stages']['F3']['count']);
         $this->assertEquals(1, $kpi['stages']['F4']['count']);
         $this->assertEquals(0, $kpi['stages']['F1']['count']);
+    }
+
+    public function test_get_kpi_summary_excludes_completed_contracts_from_overdue(): void
+    {
+        $contracts = [
+            [
+                'lop' => 'LOP-001',
+                'revenue' => 10000000,
+                'realized_revenue' => 10000000,
+                'is_overdue' => true,
+                'status_kontrak' => 'SELESAI',
+                'is_completed' => true,
+            ],
+            [
+                'lop' => 'LOP-002',
+                'revenue' => 20000000,
+                'realized_revenue' => 0,
+                'is_overdue' => true,
+                'status_kontrak' => 'BERJALAN',
+                'is_completed' => false,
+            ],
+        ];
+
+        $kpi = $this->contractService->getKpiSummary($contracts);
+        $this->assertEquals(1, $kpi['overdue_contracts']);
+        $this->assertEquals(1, $kpi['kontrak_berjalan_count']);
+        $this->assertEquals(1, $kpi['kontrak_selesai_count']);
     }
 
     public function test_search_contracts_by_customer_and_lop(): void
@@ -414,5 +443,52 @@ class ContractServiceTest extends TestCase
 
         $this->assertNotNull($result);
         $this->assertEquals(25, $result['billcomp_percentage']);
+    }
+
+    public function test_service_field_accepts_up_to_700_characters(): void
+    {
+        $user = User::factory()->create();
+        $longServiceDescription = str_repeat('A', 700);
+
+        $input = [
+            'lop' => 'LOP-700-CHARS',
+            'customer' => 'Customer 700',
+            'service' => $longServiceDescription,
+            'stage' => 'F1',
+            'revenue' => 100000000,
+        ];
+
+        $this->mockSheetsService
+            ->shouldReceive('appendContract')
+            ->once()
+            ->with(\Mockery::on(function ($arg) use ($longServiceDescription) {
+                return $arg['service'] === $longServiceDescription;
+            }), $user->id)
+            ->andReturn([
+                '_row_index' => 11,
+                'lop' => 'LOP-700-CHARS',
+                'customer' => 'Customer 700',
+                'service' => $longServiceDescription,
+                'stage' => 'F1',
+                'revenue' => 100000000,
+            ]);
+
+        $created = $this->contractService->createContract($input, $user->id);
+        $this->assertEquals(700, strlen($created['service']));
+    }
+
+    public function test_service_field_rejects_exceeding_700_characters(): void
+    {
+        $this->expectException(\Illuminate\Validation\ValidationException::class);
+
+        $input = [
+            'lop' => 'LOP-701-CHARS',
+            'customer' => 'Customer 701',
+            'service' => str_repeat('A', 701),
+            'stage' => 'F1',
+            'revenue' => 100000000,
+        ];
+
+        $this->contractService->createContract($input);
     }
 }

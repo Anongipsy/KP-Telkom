@@ -172,4 +172,100 @@ class NavigationAndPagesTest extends TestCase
         $adminResponse = $this->actingAs($this->adminUser)->get('/dashboard');
         $adminResponse->assertSee('Audit Trail & Log', false);
     }
+
+    public function test_contracts_table_header_is_tahapan_and_filter_status_kontrak_exists(): void
+    {
+        $mockContractService = Mockery::mock(ContractService::class);
+        $mockContractService->shouldReceive('getAllContracts')->once()->andReturn([]);
+        $mockContractService->shouldReceive('getContractsByStage')->once()->andReturn([]);
+        $mockContractService->shouldReceive('searchAndFilter')->once()->andReturn([]);
+        $mockContractService->shouldReceive('sortContracts')->once()->andReturn([]);
+
+        $this->app->instance(ContractService::class, $mockContractService);
+
+        $response = $this->actingAs($this->amUser)->get('/contracts');
+        $response->assertOk();
+        $response->assertSee('<th class="px-4 py-3.5">Tahapan</th>', false);
+        $response->assertDontSee('<th class="px-4 py-3.5">Tahapan & Status</th>', false);
+        $response->assertSee('name="status_kontrak"', false);
+    }
+
+    public function test_completed_contracts_display_kontrak_selesai_badge(): void
+    {
+        $contracts = [
+            [
+                '_row_index' => 2,
+                'lop' => 'LOP-COMP-1',
+                'contract_number' => 'CTR/COMP/1',
+                'satker' => 'Satker Selesai',
+                'service' => 'Internet',
+                'stage' => 'F4',
+                'stage_label' => 'Closed Won',
+                'revenue' => 10000000,
+                'revenue_formatted' => 'Rp 10.000.000',
+                'start_date' => '2025-01-01',
+                'end_date' => '2025-12-31',
+                'days_remaining' => -250,
+                'expiration_status' => 'OVERDUE',
+                'sp_po' => 'AVAILABLE',
+                'status_kontrak' => 'SELESAI',
+                'billcomp_percentage' => 100,
+                'nilai_bc' => 10000000,
+                'nilai_bc_formatted' => 'Rp 10.000.000',
+            ],
+        ];
+
+        $mockContractService = Mockery::mock(ContractService::class);
+        $mockContractService->shouldReceive('getAllContracts')->once()->andReturn($contracts);
+        $mockContractService->shouldReceive('getContractsByStage')->once()->andReturn([]);
+        $mockContractService->shouldReceive('searchAndFilter')->once()->andReturn($contracts);
+        $mockContractService->shouldReceive('sortContracts')->once()->andReturn($contracts);
+
+        $this->app->instance(ContractService::class, $mockContractService);
+
+        $response = $this->actingAs($this->amUser)->get('/contracts');
+        $response->assertOk();
+        $response->assertSee('Kontrak Selesai', false);
+        $response->assertDontSee('-250 hari', false);
+    }
+
+    public function test_monitoring_page_excludes_completed_contracts_from_overdue(): void
+    {
+        $contracts = [
+            [
+                '_row_index' => 2,
+                'lop' => 'LOP-OVERDUE-ACTIVE',
+                'contract_number' => 'CTR/001',
+                'satker' => 'Satker Overdue',
+                'service' => 'Astinet High Speed',
+                'end_date' => '2025-12-31',
+                'days_remaining' => -50,
+                'expiration_status' => 'OVERDUE',
+                'status_kontrak' => 'BERJALAN',
+            ],
+            [
+                '_row_index' => 3,
+                'lop' => 'LOP-OVERDUE-DONE',
+                'contract_number' => 'CTR/002',
+                'satker' => 'Satker Done',
+                'service' => 'Astinet High Speed',
+                'end_date' => '2025-12-31',
+                'days_remaining' => -200,
+                'expiration_status' => 'OVERDUE',
+                'status_kontrak' => 'SELESAI',
+            ],
+        ];
+
+        $mockContractService = Mockery::mock(ContractService::class);
+        $mockContractService->shouldReceive('getAllContracts')->once()->andReturn($contracts);
+
+        $this->app->instance(ContractService::class, $mockContractService);
+
+        $response = $this->actingAs($this->amUser)->get('/monitoring');
+        $response->assertOk();
+
+        $overdueContracts = $response->viewData('overdueContracts');
+        $this->assertCount(1, $overdueContracts);
+        $this->assertEquals('LOP-OVERDUE-ACTIVE', $overdueContracts[0]['lop']);
+    }
 }

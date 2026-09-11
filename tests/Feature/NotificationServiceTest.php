@@ -220,4 +220,96 @@ class NotificationServiceTest extends TestCase
             'target_reference' => 'LOP-AUDIT-TEST',
         ]);
     }
+
+    public function test_user_can_delete_single_notification(): void
+    {
+        $notif = Notification::factory()->create([
+            'user_id' => $this->user->id,
+            'lop_reference' => 'LOP-DEL-1',
+        ]);
+
+        $response = $this->actingAs($this->user)->delete('/notifications/' . $notif->id);
+
+        $response->assertStatus(302);
+        $this->assertDatabaseMissing('notifications', ['id' => $notif->id]);
+    }
+
+    public function test_user_can_clear_all_notifications(): void
+    {
+        Notification::factory()->count(3)->create([
+            'user_id' => $this->user->id,
+        ]);
+
+        $this->assertCount(3, Notification::where('user_id', $this->user->id)->get());
+
+        $response = $this->actingAs($this->user)->delete('/notifications/clear-all');
+
+        $response->assertStatus(302);
+        $this->assertCount(0, Notification::where('user_id', $this->user->id)->get());
+    }
+
+    public function test_filter_notifications_by_read_and_unread_status(): void
+    {
+        Notification::factory()->create([
+            'user_id' => $this->user->id,
+            'is_read' => true,
+            'lop_reference' => 'LOP-READ-1',
+        ]);
+        Notification::factory()->create([
+            'user_id' => $this->user->id,
+            'is_read' => false,
+            'lop_reference' => 'LOP-UNREAD-1',
+        ]);
+
+        // Test status=read
+        $responseRead = $this->actingAs($this->user)->get('/monitoring?tab=notifications&status=read');
+        $responseRead->assertStatus(200);
+        $notificationsRead = $responseRead->viewData('notifications');
+        $this->assertCount(1, $notificationsRead);
+        $this->assertTrue((bool) $notificationsRead->first()->is_read);
+        $this->assertEquals('LOP-READ-1', $notificationsRead->first()->lop_reference);
+
+        // Test status=unread
+        $responseUnread = $this->actingAs($this->user)->get('/monitoring?tab=notifications&status=unread');
+        $responseUnread->assertStatus(200);
+        $notificationsUnread = $responseUnread->viewData('notifications');
+        $this->assertCount(1, $notificationsUnread);
+        $this->assertFalse((bool) $notificationsUnread->first()->is_read);
+        $this->assertEquals('LOP-UNREAD-1', $notificationsUnread->first()->lop_reference);
+
+        // Test status=all
+        $responseAll = $this->actingAs($this->user)->get('/monitoring?tab=notifications&status=all');
+        $responseAll->assertStatus(200);
+        $notificationsAll = $responseAll->viewData('notifications');
+        $this->assertCount(2, $notificationsAll);
+    }
+
+    public function test_completed_contract_does_not_generate_notification_and_cleans_up_stale(): void
+    {
+        // First create an existing notification for a contract
+        Notification::factory()->create([
+            'user_id' => $this->user->id,
+            'alert_type' => 'OVERDUE',
+            'lop_reference' => 'LOP-COMPLETED-1',
+            'days_remaining' => -10,
+        ]);
+
+        $this->assertDatabaseHas('notifications', [
+            'lop_reference' => 'LOP-COMPLETED-1',
+        ]);
+
+        // Contract is overdue (-10 days) but status_kontrak is SELESAI
+        $contract = $this->makeContract('LOP-COMPLETED-1', -10);
+        $contract['status_kontrak'] = 'SELESAI';
+
+        $summary = $this->notificationService->processContracts([$contract], $this->user->id);
+
+        // Should not create or update, but should cleanup the stale notification
+        $this->assertEquals(0, $summary['created']);
+        $this->assertEquals(0, $summary['updated']);
+        $this->assertEquals(1, $summary['cleaned']);
+        $this->assertDatabaseMissing('notifications', [
+            'lop_reference' => 'LOP-COMPLETED-1',
+        ]);
+    }
 }

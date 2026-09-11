@@ -90,5 +90,17 @@ class ExpirationServiceTest extends TestCase
         $this->assertEquals('OVERDUE', $enrichedOverdue['expiration_status']);
         $this->assertEquals(-27, $enrichedOverdue['days_remaining']);
         $this->assertTrue($enrichedOverdue['is_overdue']);
+
+        // Completed contract: status_kontrak = SELESAI
+        $completedContract = [
+            'lop' => 'LOP-004',
+            'end_date' => '2026-08-01',
+            'status_kontrak' => 'SELESAI',
+        ];
+
+        $enrichedCompleted = $this->service->enrichContract($completedContract, $today);
+        $this->assertFalse($enrichedCompleted['is_overdue']);
+        $this->assertFalse($enrichedCompleted['is_expiring_soon']);
+        $this->assertFalse($enrichedCompleted['is_active_contract']);
     }
 }

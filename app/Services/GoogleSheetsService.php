@@ -141,7 +141,10 @@ class GoogleSheetsService
         $range = $range ?: $this->getRange();
 
         try {
-            $response = $this->getSheetsService()->spreadsheets_values->get($spreadsheetId, $range);
+            $response = $this->getSheetsService()->spreadsheets_values->get($spreadsheetId, $range, [
+                'valueRenderOption' => 'UNFORMATTED_VALUE',
+                'dateTimeRenderOption' => 'SERIAL_NUMBER',
+            ]);
             return $response->getValues() ?: [];
         } catch (Throwable $e) {
             $this->logError('Failed to read spreadsheet values', $e);

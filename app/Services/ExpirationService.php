@@ -79,12 +79,16 @@ class ExpirationService
         $daysRemaining = $this->calculateDaysRemaining($endDate, $referenceDate);
         $status = $this->getExpirationStatus($daysRemaining);
 
+        $isCompleted = ($contract['is_completed'] ?? false)
+            || strtoupper((string) ($contract['status_kontrak'] ?? '')) === 'SELESAI'
+            || str_contains(strtoupper((string) ($contract['status_kontrak'] ?? '')), 'SELESAI');
+
         $contract['days_remaining'] = $daysRemaining;
         $contract['expiration_status'] = $status?->value;
         $contract['expiration_status_label'] = $status?->label();
-        $contract['is_active_contract'] = $status === ExpirationStatus::ACTIVE;
-        $contract['is_expiring_soon'] = $status === ExpirationStatus::EXPIRING_SOON;
-        $contract['is_overdue'] = $status === ExpirationStatus::OVERDUE;
+        $contract['is_active_contract'] = ($status === ExpirationStatus::ACTIVE) && !$isCompleted;
+        $contract['is_expiring_soon'] = ($status === ExpirationStatus::EXPIRING_SOON) && !$isCompleted;
+        $contract['is_overdue'] = ($status === ExpirationStatus::OVERDUE) && !$isCompleted;
 
         return $contract;
     }

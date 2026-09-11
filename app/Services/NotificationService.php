@@ -71,8 +71,24 @@ class NotificationService
                 $lop = $contract['lop'] ?? null;
                 $daysRemaining = $contract['days_remaining'] ?? null;
                 $status = $contract['expiration_status'] ?? null;
+                $contractStatus = $contract['status_kontrak'] ?? 'BERJALAN';
 
                 if (empty($lop) || $daysRemaining === null) {
+                    continue;
+                }
+
+                if ($contractStatus === 'SELESAI') {
+                    // Contract is completed. Cleanup any stale alerts.
+                    $cleanedCount = $dryRun ? 0 : $this->cleanupStaleNotifications($user->id, $lop);
+                    if ($cleanedCount > 0) {
+                        $summary['cleaned'] += $cleanedCount;
+                        $summary['details'][] = [
+                            'user_id' => $user->id,
+                            'lop' => $lop,
+                            'action' => 'cleaned',
+                            'cleaned_count' => $cleanedCount,
+                        ];
+                    }
                     continue;
                 }
 

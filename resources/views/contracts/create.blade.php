@@ -77,8 +77,7 @@
 
                 <x-form-input
                     name="nama_gc"
-                    label="Nama GC (Group Company)"
-                    placeholder="Contoh: PT Semen Indonesia Group"
+                    label="Nama GC"
                 />
 
                 <x-form-input
@@ -98,9 +97,13 @@
 
                 <div class="sm:col-span-2">
                     <x-form-input
+                        type="textarea"
+                        rows="3"
+                        maxlength="700"
                         name="service"
                         label="Deskripsi Layanan"
                         placeholder="Contoh: Astinet Dedicated 500 Mbps, Indibiz, Cloud"
+                        hint="Maksimal 700 karakter"
                         required
                     />
                 </div>

@@ -40,10 +40,20 @@ class MonitoringController extends Controller
             $contracts = [];
         }
 
-        // Categorize contracts for Expiration Health monitoring
-        $overdueContracts = array_values(array_filter($contracts, fn($c) => ($c['expiration_status'] ?? '') === 'OVERDUE'));
-        $expiringSoonContracts = array_values(array_filter($contracts, fn($c) => ($c['expiration_status'] ?? '') === 'EXPIRING_SOON'));
-        $activeContracts = array_values(array_filter($contracts, fn($c) => ($c['expiration_status'] ?? '') === 'ACTIVE'));
+        $isNotCompleted = fn($c) => !($c['is_completed'] ?? false)
+            && strtoupper((string) ($c['status_kontrak'] ?? 'BERJALAN')) !== 'SELESAI'
+            && !str_contains(strtoupper((string) ($c['status_kontrak'] ?? '')), 'SELESAI');
+
+        // Categorize contracts for Expiration Health monitoring (excluding completed contracts)
+        $overdueContracts = array_values(array_filter($contracts, fn($c) =>
+            ($c['expiration_status'] ?? '') === 'OVERDUE' && $isNotCompleted($c)
+        ));
+        $expiringSoonContracts = array_values(array_filter($contracts, fn($c) =>
+            ($c['expiration_status'] ?? '') === 'EXPIRING_SOON' && $isNotCompleted($c)
+        ));
+        $activeContracts = array_values(array_filter($contracts, fn($c) =>
+            ($c['expiration_status'] ?? '') === 'ACTIVE' && $isNotCompleted($c)
+        ));
 
         // Query user notifications
         $notificationQuery = Notification::where('user_id', $user->id)->latest();
@@ -62,6 +72,8 @@ class MonitoringController extends Controller
 
         $notifications = $notificationQuery->paginate(20)->withQueryString();
         $unreadCount = $this->notificationService->getUnreadCount($user->id);
+        $readCount = Notification::where('user_id', $user->id)->read()->count();
+        $totalNotificationCount = Notification::where('user_id', $user->id)->count();
 
         return view('monitoring.index', [
             'user' => $user,
@@ -70,6 +82,8 @@ class MonitoringController extends Controller
             'activeContracts' => $activeContracts,
             'notifications' => $notifications,
             'unreadCount' => $unreadCount,
+            'readCount' => $readCount,
+            'totalNotificationCount' => $totalNotificationCount,
             'errorMessage' => $errorMessage,
             'activeTab' => $request->input('tab', 'expiration'), // 'expiration' or 'notifications'
             'filterStatus' => $filterStatus,

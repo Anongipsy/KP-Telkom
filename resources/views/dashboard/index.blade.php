@@ -176,88 +176,119 @@
     <!-- ========================================================================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <!-- KPI 1: Total Pipeline Revenue (From Nilai Realisasi Win) -->
-        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Total Nilai Pipeline</span>
-                <div class="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Total Nilai Pipeline</span>
+                    <div class="w-9 h-9 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-600 dark:text-red-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <p class="text-xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">{{ $kpi['total_pipeline_revenue_formatted'] ?? 'Rp 0' }}</p>
+                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
+                        Nilai Realisasi Win &bull; {{ $kpi['total_lop'] ?? 0 }} kontrak {{ !empty($selectedYear) ? 'tahun ' . $selectedYear : '' }}
+                    </p>
                 </div>
             </div>
-            <div class="mt-3">
-                <p class="text-xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">{{ $kpi['total_pipeline_revenue_formatted'] ?? 'Rp 0' }}</p>
-                <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-1">
-                    Nilai Realisasi Win &bull; {{ $kpi['total_lop'] ?? 0 }} kontrak {{ !empty($selectedYear) ? 'tahun ' . $selectedYear : '' }}
-                </p>
+
+            <!-- Mini-badges: Kontrak Berjalan (Hijau) & Kontrak Selesai (Merah) -->
+            <div class="mt-3.5 pt-2.5 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-2">
+                <a href="{{ route('contracts.index', array_filter(['status_kontrak' => 'BERJALAN', 'tahun' => $selectedYear ?? null, 'nama_gc' => $selectedGc ?? null])) }}" 
+                   title="Filter Kontrak Berjalan"
+                   class="flex-1 flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-emerald-50/70 hover:bg-emerald-100/80 dark:bg-emerald-950/30 dark:hover:bg-emerald-900/50 border border-slate-200 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all group/badge shadow-xs">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 shrink-0" style="width: 8px; height: 8px;"></span>
+                        <span class="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 truncate">Berjalan</span>
+                    </div>
+                    <span class="font-mono text-xs font-extrabold text-emerald-800 dark:text-emerald-200 ml-1.5 group-hover/badge:scale-105 transition-transform">{{ $kpi['kontrak_berjalan_count'] ?? 0 }}</span>
+                </a>
+
+                <a href="{{ route('contracts.index', array_filter(['status_kontrak' => 'SELESAI', 'tahun' => $selectedYear ?? null, 'nama_gc' => $selectedGc ?? null])) }}" 
+                   title="Filter Kontrak Selesai"
+                   class="flex-1 flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-rose-50/70 hover:bg-rose-100/80 dark:bg-rose-950/30 dark:hover:bg-rose-900/50 border border-slate-200 dark:border-slate-800 hover:border-rose-300 dark:hover:border-rose-700 transition-all group/badge shadow-xs">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="inline-block w-2 h-2 rounded-full bg-rose-500 shrink-0" style="width: 8px; height: 8px;"></span>
+                        <span class="text-[11px] font-semibold text-rose-700 dark:text-rose-300 truncate">Selesai</span>
+                    </div>
+                    <span class="font-mono text-xs font-extrabold text-rose-800 dark:text-rose-200 ml-1.5 group-hover/badge:scale-105 transition-transform">{{ $kpi['kontrak_selesai_count'] ?? 0 }}</span>
+                </a>
             </div>
         </div>
 
         <!-- KPI 2: Realized Revenue & Billcomp -->
-        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Realisasi Billcomp</span>
-                <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Realisasi Billcomp</span>
+                    <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
                 </div>
-            </div>
-            <div class="mt-3">
-                <div class="flex items-baseline justify-between">
-                    <p class="text-xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">{{ $kpi['total_realized_revenue_formatted'] ?? 'Rp 0' }}</p>
-                    <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">{{ $kpi['realized_percentage'] ?? 0 }}%</span>
+                <div class="mt-3">
+                    <div class="flex items-baseline justify-between">
+                        <p class="text-xl font-extrabold text-slate-900 dark:text-white font-mono tracking-tight">{{ $kpi['total_realized_revenue_formatted'] ?? 'Rp 0' }}</p>
+                        <span class="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 font-mono">{{ $kpi['realized_percentage'] ?? 0 }}%</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
+                        <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: {{ min(100, $kpi['realized_percentage'] ?? 0) }}%"></div>
+                    </div>
+                    @if(!empty($kpi['total_nilai_bc']) && $kpi['total_nilai_bc'] > 0)
+                        <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
+                            Total Nilai BC: <span class="font-mono font-bold text-slate-700 dark:text-slate-300">{{ $kpi['total_nilai_bc_formatted'] }}</span>
+                        </p>
+                    @endif
                 </div>
-                <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-2.5 overflow-hidden">
-                    <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-full rounded-full transition-all duration-500" style="width: {{ min(100, $kpi['realized_percentage'] ?? 0) }}%"></div>
-                </div>
-                @if(!empty($kpi['total_nilai_bc']) && $kpi['total_nilai_bc'] > 0)
-                    <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-2">
-                        Total Nilai BC: <span class="font-mono font-bold text-slate-700 dark:text-slate-300">{{ $kpi['total_nilai_bc_formatted'] }}</span>
-                    </p>
-                @endif
             </div>
         </div>
 
         <!-- KPI 3: Expiring Soon Contracts (0 - 60 Days) -->
-        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Mendekati Jatuh Tempo</span>
-                <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Mendekati Jatuh Tempo</span>
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
                 </div>
-            </div>
-            <div class="mt-3 flex items-baseline justify-between">
-                <div>
-                    <p class="text-2xl font-extrabold text-amber-600 dark:text-amber-400 font-mono">{{ $kpi['expiring_soon_contracts'] ?? 0 }}</p>
-                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">0 – 60 hari tersisa</p>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div>
+                        <p class="text-2xl font-extrabold text-amber-600 dark:text-amber-400 font-mono">{{ $kpi['expiring_soon_contracts'] ?? 0 }}</p>
+                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">0 – 60 hari tersisa</p>
+                    </div>
+                    <a href="{{ route('monitoring.index') }}" class="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline">
+                        Lihat &rarr;
+                    </a>
                 </div>
-                <a href="{{ route('monitoring.index') }}" class="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline">
-                    Lihat &rarr;
-                </a>
             </div>
         </div>
 
         <!-- KPI 4: Overdue Contracts (< 0 Days) -->
-        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Lewat Jatuh Tempo</span>
-                <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
+        <div class="p-5 rounded-3xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-xl relative overflow-hidden group hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Lewat Jatuh Tempo</span>
+                    <div class="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
                 </div>
-            </div>
-            <div class="mt-3 flex items-baseline justify-between">
-                <div>
-                    <p class="text-2xl font-extrabold text-rose-600 dark:text-rose-500 font-mono">{{ $kpi['overdue_contracts'] ?? 0 }}</p>
-                    <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">&lt; 0 hari (Perlu Perpanjangan)</p>
+                <div class="mt-3 flex items-baseline justify-between">
+                    <div>
+                        <p class="text-2xl font-extrabold text-rose-600 dark:text-rose-500 font-mono">{{ $kpi['overdue_contracts'] ?? 0 }}</p>
+                        <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">&lt; 0 hari (Perlu Perpanjangan)</p>
+                    </div>
+                    <a href="{{ route('monitoring.index') }}" class="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline">
+                        Lihat &rarr;
+                    </a>
                 </div>
-                <a href="{{ route('monitoring.index') }}" class="text-[11px] font-bold text-rose-600 dark:text-rose-400 hover:underline">
-                    Lihat &rarr;
-                </a>
             </div>
         </div>
     </div>

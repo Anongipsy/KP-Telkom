@@ -114,7 +114,10 @@ class GoogleSheetsServiceTest extends TestCase
         $this->mockValuesResource
             ->shouldReceive('get')
             ->once()
-            ->with('test-spreadsheet-id-12345', 'Contracts!A:U')
+            ->with('test-spreadsheet-id-12345', 'Contracts!A:U', [
+                'valueRenderOption' => 'UNFORMATTED_VALUE',
+                'dateTimeRenderOption' => 'SERIAL_NUMBER',
+            ])
             ->andReturn($this->createSampleSpreadsheetValues());
 
         $contracts = $this->service->getAllContracts();
@@ -143,7 +146,10 @@ class GoogleSheetsServiceTest extends TestCase
         $this->mockValuesResource
             ->shouldReceive('get')
             ->once()
-            ->with('test-spreadsheet-id-12345', 'Contracts!A:U')
+            ->with('test-spreadsheet-id-12345', 'Contracts!A:U', [
+                'valueRenderOption' => 'UNFORMATTED_VALUE',
+                'dateTimeRenderOption' => 'SERIAL_NUMBER',
+            ])
             ->andReturn($this->createSampleSpreadsheetValues());
 
         $firstCall = $this->service->getAllContracts();
@@ -283,5 +289,50 @@ class GoogleSheetsServiceTest extends TestCase
         $this->expectExceptionMessage('Unable to retrieve contract data from Google Sheets');
 
         $this->service->getAllContracts();
+    }
+
+    public function test_serial_date_numbers_are_correctly_parsed_into_precise_dates(): void
+    {
+        // 46048 corresponds to 2026-01-26, 46387 corresponds to 2026-12-31
+        $response = new ValueRange();
+        $response->setValues([
+            DataTransformer::STANDARD_HEADERS,
+            [
+                'TENS-001',
+                '2026',
+                'LOP-SERIAL-1',
+                'CTR/001',
+                'PT Telkom Group',
+                'Satker Alpha',
+                'PT Customer Satu',
+                'Astinet 100 Mbps',
+                'F3',
+                3048648650,
+                100000000,
+                46048, // 2026-01-26
+                46387, // 2026-12-31 (NOT reverted to 2026-12-01!)
+                12,
+                'Desember 2026',
+                8333333,
+                'AVAILABLE',
+                'ISSUED',
+                'PARTIAL',
+                50,
+                'doc_ref_1',
+                'Kontrak Berjalan',
+            ],
+        ]);
+
+        $this->mockValuesResource
+            ->shouldReceive('get')
+            ->once()
+            ->andReturn($response);
+
+        $contracts = $this->service->getAllContracts();
+
+        $this->assertCount(1, $contracts);
+        $this->assertEquals('2026-01-26', $contracts[0]['start_date']);
+        $this->assertEquals('2026-12-31', $contracts[0]['end_date']);
+        $this->assertNotEquals('2026-12-01', $contracts[0]['end_date']);
     }
 }

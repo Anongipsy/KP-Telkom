@@ -177,6 +177,8 @@ class ContractService
         $activeCount = 0;
         $expiringSoonCount = 0;
         $overdueCount = 0;
+        $kontrakBerjalanCount = 0;
+        $kontrakSelesaiCount = 0;
 
         // Pipeline Stages breakdown (F0–F4)
         $stageSummary = [];
@@ -207,13 +209,23 @@ class ContractService
             $totalRealizedRevenue += $realizedRevenue;
             $totalNilaiBc += $nilaiBc;
 
-            if ($contract['is_active_contract'] ?? false) {
+            $isCompleted = ($contract['is_completed'] ?? false)
+                || strtoupper((string) ($contract['status_kontrak'] ?? '')) === 'SELESAI'
+                || str_contains(strtoupper((string) ($contract['status_kontrak'] ?? '')), 'SELESAI');
+
+            if ($isCompleted) {
+                $kontrakSelesaiCount++;
+            } else {
+                $kontrakBerjalanCount++;
+            }
+
+            if (($contract['is_active_contract'] ?? false) && !$isCompleted) {
                 $activeCount++;
             }
-            if ($contract['is_expiring_soon'] ?? false) {
+            if (($contract['is_expiring_soon'] ?? false) && !$isCompleted) {
                 $expiringSoonCount++;
             }
-            if ($contract['is_overdue'] ?? false) {
+            if (($contract['is_overdue'] ?? false) && !$isCompleted) {
                 $overdueCount++;
             }
 
@@ -245,6 +257,8 @@ class ContractService
             'total_nilai_bc_formatted' => $this->transformer->formatCurrency($totalNilaiBc),
             'realized_percentage' => $realizedPercentage,
             'total_lop' => $totalLop,
+            'kontrak_berjalan_count' => $kontrakBerjalanCount,
+            'kontrak_selesai_count' => $kontrakSelesaiCount,
             'active_contracts' => $activeCount,
             'expiring_soon_contracts' => $expiringSoonCount,
             'overdue_contracts' => $overdueCount,
@@ -570,8 +584,8 @@ class ContractService
             'customer' => 'required|string|max:255',
             'judul_proyek' => 'nullable|string|max:500',
             'satker' => 'nullable|string|max:255',
-            'service' => 'required|string|max:255',
-            'deskripsi_layanan' => 'nullable|string|max:255',
+            'service' => 'required|string|max:700',
+            'deskripsi_layanan' => 'nullable|string|max:700',
             'stage' => 'required|string|in:F0,F1,F2,F3,F4',
             'estimasi_nilai_proyek' => 'nullable',
             'revenue' => 'required',
