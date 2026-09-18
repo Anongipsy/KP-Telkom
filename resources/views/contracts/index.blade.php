@@ -40,7 +40,7 @@
                 })
                 .catch(err => {
                     this.pdfLoading = false;
-                    this.pdfError = 'Gagal memeriksa dokumen dari Google Drive.';
+                    this.pdfError = 'Gagal memeriksa dokumen dari server.';
                 });
         },
 
@@ -444,12 +444,12 @@
                                 <td class="px-4 py-3.5 text-right">
                                     <div class="flex items-center justify-end gap-1.5">
                                         <!-- PDF Preview Button if doc exists -->
-                                        @if(!empty($contract['document_reference']))
+                                        @if(!empty($contract['has_document']) || !empty($contract['document_reference']))
                                             <button
                                                 type="button"
                                                 @click="openDocumentViewer('{{ $contract['lop'] }}', '{{ addslashes($contract['customer']) }}')"
                                                 class="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/20 transition-colors cursor-pointer"
-                                                title="Lihat Dokumen Google Drive"
+                                                title="Lihat Dokumen Kontrak"
                                             >
                                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -632,7 +632,7 @@
                         <svg class="w-4 h-4 text-red-600 dark:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
                         </svg>
-                        <span>Pratinjau Dokumen Google Drive &bull; <span x-text="pdfLop" class="font-mono text-red-600 dark:text-red-400"></span></span>
+                        <span>Pratinjau Dokumen Kontrak &bull; <span x-text="pdfLop" class="font-mono text-red-600 dark:text-red-400"></span></span>
                     </h3>
                     <p class="text-xs text-slate-500 dark:text-slate-400" x-text="pdfCustomer"></p>
                 </div>
@@ -653,7 +653,7 @@
                 <!-- Loading State -->
                 <div x-show="pdfLoading" class="text-center space-y-3">
                     <div class="w-10 h-10 border-4 border-red-500/20 border-t-red-500 rounded-full animate-spin mx-auto"></div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">Memeriksa referensi dokumen Google Drive...</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-mono">Memuat dokumen kontrak...</p>
                 </div>
 
                 <!-- Error State -->

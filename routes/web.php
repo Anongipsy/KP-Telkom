@@ -37,9 +37,11 @@ Route::middleware(['auth', 'active'])->group(function () {
         Route::put('/{lop}', [\App\Http\Controllers\ContractController::class, 'update'])->name('update');
         Route::post('/{lop}/complete', [\App\Http\Controllers\ContractController::class, 'complete'])->name('complete');
 
-        // Google Drive Document Viewer — PRD FR-12 & FR-13
+        // Contract Document Management (Local Storage Proxy, Upload, Delete)
         Route::get('/{lop}/document/metadata', [\App\Http\Controllers\DocumentController::class, 'metadata'])->name('document.metadata');
         Route::get('/{lop}/document/proxy', [\App\Http\Controllers\DocumentController::class, 'proxy'])->name('document.proxy');
+        Route::post('/{lop}/document/upload', [\App\Http\Controllers\DocumentController::class, 'upload'])->name('document.upload');
+        Route::delete('/{lop}/document', [\App\Http\Controllers\DocumentController::class, 'destroy'])->name('document.destroy');
     });
 
     // Early Warning & Notifications — PRD FR-09, FR-10, FR-11

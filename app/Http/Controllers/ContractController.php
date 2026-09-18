@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\ContractService;
+use App\Services\DocumentStorageService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -45,7 +46,8 @@ class ContractController extends Controller
     ];
 
     public function __construct(
-        protected ContractService $contractService
+        protected ContractService $contractService,
+        protected DocumentStorageService $documentStorage
     ) {}
 
     /**
@@ -61,6 +63,12 @@ class ContractController extends Controller
 
         try {
             $allContracts = $this->contractService->getAllContracts();
+            $docLops = $this->documentStorage->getAllDocumentLopsMap();
+            $allContracts = array_map(function ($c) use ($docLops) {
+                $c['has_document'] = isset($docLops[$c['lop']]);
+                return $c;
+            }, $allContracts);
+
             // Search & Filter execution
             $query = (string) ($request->input('q') ?? '');
             $filters = $request->only([
@@ -153,8 +161,12 @@ class ContractController extends Controller
                 return redirect()->route('dashboard')->with('error', "Kontrak dengan LOP '{$lop}' tidak ditemukan.");
             }
 
+            $document = $this->documentStorage->getDocument($lop);
+            $contract['has_document'] = $document !== null;
+
             return view('contracts.show', [
                 'contract' => $contract,
+                'document' => $document,
             ]);
         } catch (\Throwable $e) {
             Log::error("Failed to load contract detail for LOP '{$lop}': " . $e->getMessage(), [
@@ -178,7 +190,36 @@ class ContractController extends Controller
     public function store(Request $request): RedirectResponse
     {
         try {
+            if ($request->hasFile('document_file')) {
+                $allowedExtensions = implode(',', config('documents.allowed_extensions', ['pdf', 'png', 'jpg', 'jpeg', 'webp']));
+                $maxKb = config('documents.max_upload_size_kb', 10240);
+                $maxMb = config('documents.max_upload_size_mb', 10);
+                $request->validate([
+                    'document_file' => "file|mimes:{$allowedExtensions}|max:{$maxKb}",
+                ], [
+                    'document_file.file' => 'File yang diunggah tidak valid.',
+                    'document_file.mimes' => 'Format file harus berupa PDF atau gambar (PNG, JPG, WebP).',
+                    'document_file.max' => "Ukuran file dokumen tidak boleh melebihi {$maxMb}MB.",
+                ]);
+            }
+
             $created = $this->contractService->createContract($request->only(self::ALLOWED_FIELDS), $request->user()->id);
+
+            if ($request->hasFile('document_file')) {
+                try {
+                    $this->documentStorage->upload(
+                        $request->file('document_file'),
+                        $created['lop'],
+                        $request->user()->id
+                    );
+                } catch (\Throwable $uploadEx) {
+                    Log::warning("Contract created but document upload failed for LOP {$created['lop']}: " . $uploadEx->getMessage());
+                    return redirect()
+                        ->route('contracts.show', $created['lop'])
+                        ->with('status', "Kontrak dengan LOP '{$created['lop']}' berhasil ditambahkan ke Google Sheets.")
+                        ->with('error', "Namun dokumen gagal di-upload: " . $uploadEx->getMessage());
+                }
+            }
 
             return redirect()
                 ->route('contracts.show', $created['lop'])
@@ -209,8 +250,12 @@ class ContractController extends Controller
                 return redirect()->route('dashboard')->with('error', "Kontrak dengan LOP '{$lop}' tidak ditemukan.");
             }
 
+            $document = $this->documentStorage->getDocument($lop);
+            $contract['has_document'] = $document !== null;
+
             return view('contracts.edit', [
                 'contract' => $contract,
+                'document' => $document,
             ]);
         } catch (\Throwable $e) {
             Log::error("Failed to load contract for editing LOP '{$lop}': " . $e->getMessage(), [
@@ -226,7 +271,36 @@ class ContractController extends Controller
     public function update(Request $request, string $lop): RedirectResponse
     {
         try {
+            if ($request->hasFile('document_file')) {
+                $allowedExtensions = implode(',', config('documents.allowed_extensions', ['pdf', 'png', 'jpg', 'jpeg', 'webp']));
+                $maxKb = config('documents.max_upload_size_kb', 10240);
+                $maxMb = config('documents.max_upload_size_mb', 10);
+                $request->validate([
+                    'document_file' => "file|mimes:{$allowedExtensions}|max:{$maxKb}",
+                ], [
+                    'document_file.file' => 'File yang diunggah tidak valid.',
+                    'document_file.mimes' => 'Format file harus berupa PDF atau gambar (PNG, JPG, WebP).',
+                    'document_file.max' => "Ukuran file dokumen tidak boleh melebihi {$maxMb}MB.",
+                ]);
+            }
+
             $updated = $this->contractService->updateContract($lop, $request->only(self::ALLOWED_FIELDS), $request->user()->id);
+
+            if ($request->hasFile('document_file')) {
+                try {
+                    $this->documentStorage->upload(
+                        $request->file('document_file'),
+                        $lop,
+                        $request->user()->id
+                    );
+                } catch (\Throwable $uploadEx) {
+                    Log::warning("Contract updated but document upload failed for LOP {$lop}: " . $uploadEx->getMessage());
+                    return redirect()
+                        ->route('contracts.show', $lop)
+                        ->with('status', "Data kontrak '{$lop}' berhasil diperbarui di Google Sheets.")
+                        ->with('error', "Namun dokumen baru gagal di-upload: " . $uploadEx->getMessage());
+                }
+            }
 
             return redirect()
                 ->route('contracts.show', $lop)

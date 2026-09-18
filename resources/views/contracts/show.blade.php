@@ -315,36 +315,123 @@
                 </div>
 
                 <div>
-                    <dt class="text-slate-500 font-medium">Referensi Dokumen (Google Drive)</dt>
-                    <dd class="mt-1">
-                        @if(!empty($contract['document_reference']))
-                            <div class="space-y-2.5">
-                                <div class="flex items-center gap-2 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800">
-                                    <svg class="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                                    </svg>
-                                    <span class="font-mono text-slate-700 dark:text-slate-300 truncate text-[11px] flex-1">{{ $contract['document_reference'] }}</span>
+                    <dt class="text-slate-500 font-medium flex items-center justify-between">
+                        <span>Dokumen Kontrak</span>
+                        @if(!empty($document))
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                Tersedia
+                            </span>
+                        @endif
+                    </dt>
+                    <dd class="mt-2">
+                        @if(!empty($document))
+                            <div class="space-y-3">
+                                <!-- Document Info Card -->
+                                <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <div class="p-2 rounded-xl bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 shrink-0">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="truncate flex-1">
+                                            <p class="font-semibold text-slate-800 dark:text-slate-200 text-xs truncate" title="{{ $document->original_name }}">
+                                                {{ $document->original_name }}
+                                            </p>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                                <span>{{ $document->sizeFormatted() }}</span>
+                                                <span>&bull;</span>
+                                                <span>{{ $document->created_at?->translatedFormat('d M Y H:i') ?? '-' }}</span>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <!-- View Document Button (PRD FR-12, FR-13) -->
-                                <button
-                                    type="button"
-                                    @click="openModal()"
-                                    class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-xs shadow-md shadow-red-600/20 transition-all cursor-pointer"
-                                >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                    </svg>
-                                    <span>Lihat Dokumen Kontrak (PDF/Image)</span>
-                                </button>
+                                <!-- Action Buttons: Preview & Delete -->
+                                <div class="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        @click="openModal()"
+                                        class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-xs shadow-md shadow-red-600/20 transition-all cursor-pointer"
+                                    >
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                        <span>Lihat Dokumen Kontrak</span>
+                                    </button>
+
+                                    <!-- Delete Document Form -->
+                                    <form
+                                        action="{{ route('contracts.document.destroy', $contract['lop']) }}"
+                                        method="POST"
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus dokumen kontrak ini dari server?')"
+                                    >
+                                        @csrf
+                                        @method('DELETE')
+                                        <button
+                                            type="submit"
+                                            class="p-2.5 rounded-xl bg-slate-100 hover:bg-rose-50 dark:bg-slate-800 dark:hover:bg-rose-950/30 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                                            title="Hapus Dokumen"
+                                        >
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         @else
-                            <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 italic text-[11px] flex items-center gap-2">
-                                <svg class="w-4 h-4 text-slate-400 dark:text-slate-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <span>Belum ada referensi dokumen Google Drive. Silakan edit kontrak untuk menambahkan file ID.</span>
+                            <div class="space-y-3" x-data="{ openUpload: false, fileName: '' }">
+                                @if(!empty($contract['document_reference']))
+                                    <div class="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-400 text-xs flex items-center gap-2">
+                                        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        <span class="truncate">Referensi lama: <strong class="font-mono">{{ $contract['document_reference'] }}</strong></span>
+                                    </div>
+                                @endif
+
+                                <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 italic text-[11px] flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-slate-400 dark:text-slate-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span>Belum ada dokumen fisik yang di-upload untuk kontrak ini.</span>
+                                </div>
+
+                                <!-- Inline Upload Form -->
+                                <form
+                                    action="{{ route('contracts.document.upload', $contract['lop']) }}"
+                                    method="POST"
+                                    enctype="multipart/form-data"
+                                    class="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2.5 shadow-sm"
+                                >
+                                    @csrf
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300">Upload Dokumen (PDF/Gambar)</span>
+                                        <span class="text-[10px] text-slate-400">Maks. 10MB</span>
+                                    </div>
+
+                                    <div class="flex items-center gap-2">
+                                        <input
+                                            type="file"
+                                            name="document_file"
+                                            required
+                                            accept=".pdf,.png,.jpg,.jpeg,.webp"
+                                            @change="fileName = $event.target.files.length ? $event.target.files[0].name : ''"
+                                            class="block w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-red-500/10 file:text-red-600 hover:file:bg-red-500/20 cursor-pointer"
+                                        />
+                                        <button
+                                            type="submit"
+                                            class="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow transition-colors shrink-0 cursor-pointer"
+                                        >
+                                            Upload
+                                        </button>
+                                    </div>
+                                    @error('document_file')
+                                        <p class="text-red-600 text-xs">{{ $message }}</p>
+                                    @enderror
+                                </form>
                             </div>
                         @endif
                     </dd>
@@ -446,7 +533,7 @@
                         </svg>
                     </div>
                     <div>
-                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Memverifikasi Dokumen Google Drive</h4>
+                        <h4 class="text-sm font-bold text-slate-900 dark:text-white">Memuat Dokumen Kontrak</h4>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Mengambil metadata dan menyiapkan preview dokumen...</p>
                     </div>
                 </div>
@@ -481,50 +568,22 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                         </svg>
                     </div>
-                    <h4 class="text-sm font-bold text-slate-900 dark:text-white">File Tidak Ditemukan</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" x-text="errorMessage || 'File Google Drive dengan ID tersebut tidak ditemukan atau telah dihapus.'"></p>
+                    <h4 class="text-sm font-bold text-slate-900 dark:text-white">Dokumen Tidak Ditemukan</h4>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" x-text="errorMessage || 'File dokumen untuk kontrak ini belum di-upload atau telah dihapus.'"></p>
                     <button type="button" @click="closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-800 dark:text-white transition-colors cursor-pointer">
                         Tutup Modal
                     </button>
                 </div>
 
-                <!-- 4. ACCESS DENIED STATE (PRD FR-13) -->
-                <div x-show="!loading && status === 'access_denied'" class="text-center max-w-md p-6 space-y-3" style="display: none;">
-                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-sm font-bold text-slate-900 dark:text-white">Akses Ditolak</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" x-text="errorMessage || 'Service Account tidak memiliki izin akses ke file ini di Google Drive. Silakan bagikan akses file ke Service Account.'"></p>
-                    <button type="button" @click="closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-800 dark:text-white transition-colors cursor-pointer">
-                        Tutup Modal
-                    </button>
-                </div>
-
-                <!-- 5. INVALID DOCUMENT STATE (PRD FR-13) -->
-                <div x-show="!loading && status === 'invalid_document'" class="text-center max-w-md p-6 space-y-3" style="display: none;">
-                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-sm font-bold text-slate-900 dark:text-white">Referensi Dokumen Tidak Valid</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" x-text="errorMessage || 'Format Document Reference tidak dikenali sebagai Google Drive File ID.'"></p>
-                    <button type="button" @click="closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold text-slate-800 dark:text-white transition-colors cursor-pointer">
-                        Tutup Modal
-                    </button>
-                </div>
-
-                <!-- 6. GENERAL ERROR STATE (PRD FR-13) -->
-                <div x-show="!loading && status === 'error'" class="text-center max-w-md p-6 space-y-3" style="display: none;">
+                <!-- 4. ACCESS / GENERAL ERROR STATE (PRD FR-13) -->
+                <div x-show="!loading && (status === 'error' || status === 'access_denied' || status === 'invalid_document')" class="text-center max-w-md p-6 space-y-3" style="display: none;">
                     <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
                     </div>
                     <h4 class="text-sm font-bold text-slate-900 dark:text-white">Gagal Memuat Dokumen</h4>
-                    <p class="text-xs text-slate-500 dark:text-slate-400" x-text="errorMessage || 'Terjadi kesalahan sistem saat mencoba mengambil dokumen dari Google Drive.'"></p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400" x-text="errorMessage || 'Terjadi kesalahan sistem saat mencoba mengambil dokumen kontrak.'"></p>
                     <div class="flex items-center justify-center gap-2 pt-2">
                         <button type="button" @click="openModal()" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-bold text-white transition-colors cursor-pointer">
                             Coba Lagi
